@@ -20,7 +20,7 @@ export class UsersService {
   }
 
   findOne(id: string) {
-    return this.db.user.findUnique({ where: { id: id } });
+    return this.db.user.findUniqueOrThrow({ where: { id: id } });
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {

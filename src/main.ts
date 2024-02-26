@@ -10,9 +10,6 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
   app.useGlobalInterceptors(new TransformInterceptor());
 
-  // const { httpAdapter } = app.get(HttpAdapterHost);
-  // app.useGlobalFilters(new PrismaClientExceptionFilter(httpAdapter));
-
   await app.listen(3000);
 }
 bootstrap();

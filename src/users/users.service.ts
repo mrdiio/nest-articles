@@ -23,7 +23,10 @@ export class UsersService {
     return this.db.user.findUnique({ where: { id: id } });
   }
 
-  update(id: string, updateUserDto: UpdateUserDto) {
+  async update(id: string, updateUserDto: UpdateUserDto) {
+    const hashedPassword = await bcrypt.hash(updateUserDto.password, 10);
+    updateUserDto.password = hashedPassword;
+
     return this.db.user.update({
       where: { id: id },
       data: updateUserDto,

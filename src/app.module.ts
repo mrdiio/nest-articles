@@ -1,6 +1,4 @@
 import { HttpStatus, Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { ArticlesModule } from './articles/articles.module';
 import { UsersModule } from './users/users.module';
 import {
@@ -8,6 +6,7 @@ import {
   providePrismaClientExceptionFilter,
 } from 'nestjs-prisma';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -16,11 +15,9 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
     PrismaModule.forRoot({
       isGlobal: true,
     }),
+    AuthModule,
   ],
-  controllers: [AppController],
   providers: [
-    AppService,
-
     {
       provide: 'APP_FILTER',
       useClass: HttpExceptionFilter,

@@ -23,6 +23,10 @@ export class UsersService {
     return this.db.user.findUniqueOrThrow({ where: { id: id } });
   }
 
+  findUserByEmail(email: string) {
+    return this.db.user.findUnique({ where: { email: email } });
+  }
+
   async update(id: string, updateUserDto: UpdateUserDto) {
     const hashedPassword = await bcrypt.hash(updateUserDto.password, 10);
     updateUserDto.password = hashedPassword;

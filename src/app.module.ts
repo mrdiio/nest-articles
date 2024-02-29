@@ -7,6 +7,7 @@ import {
 } from 'nestjs-prisma';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { AuthModule } from './auth/auth.module';
+import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 
 @Module({
   imports: [
@@ -22,12 +23,15 @@ import { AuthModule } from './auth/auth.module';
       provide: 'APP_FILTER',
       useClass: HttpExceptionFilter,
     },
-
     providePrismaClientExceptionFilter({
       P2000: HttpStatus.BAD_REQUEST,
       P2002: HttpStatus.CONFLICT,
       P2025: HttpStatus.NOT_FOUND,
     }),
+    {
+      provide: 'APP_GUARD',
+      useClass: JwtAuthGuard,
+    },
   ],
 })
 export class AppModule {}

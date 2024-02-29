@@ -1,67 +1,65 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  Injectable,
-} from '@nestjs/common';
-import { PrismaService } from 'nestjs-prisma';
-import * as bcrypt from 'bcrypt';
-import { CreateUserDto } from 'src/users/dto/create-user.dto';
-import { LoginDto } from './dto/login.dto';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { jwtSecret } from 'src/utils/constants';
+import * as bcrypt from 'bcrypt';
 import { Request, Response } from 'express';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly db: PrismaService,
-    private readonly jwt: JwtService,
+    private readonly usersService: UsersService,
+    private readonly jwtService: JwtService,
   ) {}
 
-  async signUp(createUserDto: CreateUserDto) {
-    const foundUser = await this.db.user.findUnique({
-      where: { email: createUserDto.email },
+  async validateUser(email: string, password: string): Promise<any> {
+    const user = await this.usersService.findUserByEmail(email);
+
+    if (!user) return null;
+
+    const isMatch = await this.comparePassword({
+      password,
+      hash: user.password,
     });
 
-    if (foundUser) throw new BadRequestException('User already exists');
+    if (!isMatch) return null;
 
-    createUserDto.password = await this.hashPassword(createUserDto.password);
+    return user;
+  }
 
-    await this.db.user.create({ data: { ...createUserDto } });
+  async signin(user: any, res: Response) {
+    const payload = { name: user.name, sub: user.id };
+
+    const token = await this.jwtService.signAsync(payload);
+
+    if (!token) throw new ForbiddenException('Token was not generated');
+
+    res.cookie('access-token', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+    });
 
     return {
-      message: 'Sign up was successfull',
-      user: { ...createUserDto },
+      message: 'Sign in was successfull',
     };
   }
 
-  async signIn(loginDto: LoginDto, req: Request, res: Response) {
-    const foundUser = await this.db.user.findUnique({
-      where: { email: loginDto.email },
-    });
+  // async signUp(createUserDto: CreateUserDto) {
+  //   const foundUser = await this.db.user.findUnique({
+  //     where: { email: createUserDto.email },
+  //   });
 
-    if (!foundUser) throw new BadRequestException('Invalid credentials');
+  //   if (foundUser) throw new BadRequestException('User already exists');
 
-    const isMatch = await this.comparePassword({
-      password: loginDto.password,
-      hash: foundUser.password,
-    });
+  //   createUserDto.password = await this.hashPassword(createUserDto.password);
 
-    if (!isMatch) throw new BadRequestException('Invalid password');
+  //   await this.db.user.create({ data: { ...createUserDto } });
 
-    const token = await this.signToken({
-      id: foundUser.id,
-      email: foundUser.email,
-    });
-
-    if (!token) throw new ForbiddenException();
-
-    res.cookie('access-token', token);
-
-    return res.send({
-      message: 'Sign in was successfull',
-    });
-  }
+  //   return {
+  //     message: 'Sign up was successfull',
+  //     user: { ...createUserDto },
+  //   };
+  // }
 
   async signOut(req: Request, res: Response) {
     res.clearCookie('access-token');
@@ -76,12 +74,5 @@ export class AuthService {
 
   async comparePassword(args: { password: string; hash: string }) {
     return bcrypt.compare(args.password, args.hash);
-  }
-
-  async signToken(args: { id: string; email: string }) {
-    const payload = args;
-    return this.jwt.signAsync(payload, {
-      secret: jwtSecret,
-    });
   }
 }

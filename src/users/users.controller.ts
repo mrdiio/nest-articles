@@ -7,12 +7,10 @@ import {
   Param,
   Delete,
   ParseUUIDPipe,
-  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { JwtAuthGuard } from 'src/auth/auth.guard';
 
 @Controller('users')
 export class UsersController {
@@ -23,7 +21,6 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get()
   findAll() {
     return this.usersService.findAll();
@@ -32,6 +29,13 @@ export class UsersController {
   @Get(':id')
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
     const user = await this.usersService.findOne(id);
+
+    return user;
+  }
+
+  @Get('email/:email')
+  async findUserByEmail(@Param('email') email: string) {
+    const user = await this.usersService.findUserByEmail(email);
 
     return user;
   }

@@ -11,6 +11,8 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { Role } from '@prisma/client';
 
 @Controller('users')
 export class UsersController {
@@ -22,6 +24,7 @@ export class UsersController {
   }
 
   @Get()
+  @Roles(Role.USER)
   findAll() {
     return this.usersService.findAll();
   }

@@ -28,13 +28,19 @@ export class UsersService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
-    const hashedPassword = await bcrypt.hash(updateUserDto.password, 10);
-    updateUserDto.password = hashedPassword;
+    try {
+      if (updateUserDto.password) {
+        const hashedPassword = await bcrypt.hash(updateUserDto.password, 10);
+        updateUserDto.password = hashedPassword;
+      }
 
-    return this.db.user.update({
-      where: { id: id },
-      data: updateUserDto,
-    });
+      return this.db.user.update({
+        where: { id: id },
+        data: updateUserDto,
+      });
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   remove(id: string) {
